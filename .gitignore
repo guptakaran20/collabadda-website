@@ -1,0 +1,10 @@
+node_modules/
+.next/
+out/
+next-env.d.ts
+*.tsbuildinfo
+.DS_Store
+# raw Instagram downloads: source material only, never shipped
+source-media/
+# local editor / preview config
+.claude/
