@@ -32,19 +32,7 @@ export default function Interactions() {
         h1.style.fontSize=Math.min(250,Math.max(54,col/w*100*0.99))+'px'}
       document.fonts.ready.then(fit); document.fonts.addEventListener('loadingdone',fit); addEventListener('resize',fit,{passive:true}); fit();
 
-      /* hero phone: cycles through reels + brand stories like an IG feed */
-      const feed=$('#feed'), fImgs=[...feed.querySelectorAll('img')], fBars=feed.querySelector('.bars');
-      fBars.innerHTML=fImgs.map(()=>'<i></i>').join('');
-      const fb=[...fBars.children]; let fi=0, ft=performance.now(); const FD=2600;
-      (function tick(now){
-        if(document.body.classList.contains('ready')&&!reduce){
-          const p=(now-ft)/FD;
-          if(p>=1){fImgs[fi].classList.remove('on');fi=(fi+1)%fImgs.length;fImgs[fi].classList.add('on');ft=now;
-            fb.forEach((b,j)=>b.style.setProperty('--f',j<fi?1:0))}
-          else fb[fi].style.setProperty('--f',p);
-        } else ft=now;
-        requestAnimationFrame(tick);
-      })(ft);
+      /* hero film reel is pure CSS (rolls on its own); nothing to drive here */
 
       /* ---------- Intro: pen writes the word stroke by stroke ---------- */
       const intro=$('#intro'), strokes=$$('#intro .w path'), pen=$('#intro .pen');
@@ -53,6 +41,13 @@ export default function Interactions() {
       strokes.forEach((p,i)=>{p.style.strokeDasharray=lens[i];p.style.strokeDashoffset=lens[i]});
       let done=false;
       document.documentElement.style.overflow='hidden';
+      // BTS footage behind the sign: the small 720p cut is plenty once it's darkened and softened
+      const introVid=$('#introVid');
+      if(!reduce){
+        introVid.src='/assets/video/bts-sm.mp4';
+        introVid.addEventListener('playing',()=>introVid.classList.add('on'),{once:true});
+        introVid.play().catch(()=>{});
+      }
       function drawTo(s){
         let tip=null;
         strokes.forEach((p,i)=>{const d=Math.max(0,Math.min(lens[i],s-starts[i]));p.style.strokeDashoffset=lens[i]-d;if(d>0&&d<lens[i])tip=p.getPointAtLength(d)});
@@ -79,6 +74,7 @@ export default function Interactions() {
           {duration:reduce?1:1050,easing:'cubic-bezier(.76,0,.24,1)',fill:'forwards'});
         await anim.finished;
         document.body.classList.add('landed');intro.classList.add('gone');
+        introVid.pause();introVid.removeAttribute('src');introVid.load(); // free the decoder once the intro is gone
       }
       intro.addEventListener('click',finish);
       addEventListener('keydown',e=>{if(['Escape',' ','Enter'].includes(e.key))finish()},{once:true});

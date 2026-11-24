@@ -8,6 +8,9 @@ export default function Home() {
 
       {/* ============ INTRO ============ */}
       <div id="intro" aria-hidden="true">
+        {/* behind-the-scenes footage playing faintly behind the neon sign */}
+        <video className="intro-bg" id="introVid" muted loop playsInline preload="none" poster="/assets/video/bts-poster.webp"></video>
+        <span className="intro-vig"></span>
         <span className="skip">Tap to skip</span>
         <div className="sign">
           <svg viewBox="0 0 1300 1300">
@@ -61,18 +64,38 @@ export default function Home() {
               </div>
             </div>
            </div>
-           <div className="feed" aria-hidden="true">
-            <span className="back"></span>
-            <div className="ph"><div className="scr" id="feed">
-              <div className="bars"></div>
-              <span className="who"><svg className="badge" viewBox="0 0 1300 1300"></svg><span>collabadda</span></span>
-              <img src="/assets/img/r5.webp" className="on" width="480" height="853" alt="" fetchPriority="high" />
-              <img src="/assets/img/hl/jbl.webp" width="338" height="600" alt="" decoding="async" />
-              <img src="/assets/img/r6.webp" width="480" height="853" alt="" decoding="async" />
-              <img src="/assets/img/hl/mastercard.webp" width="338" height="600" alt="" decoding="async" />
-              <img src="/assets/img/r4.webp" width="480" height="853" alt="" decoding="async" />
-              <img src="/assets/img/hl/secret.webp" width="338" height="600" alt="" decoding="async" />
-            </div></div>
+           <div className="feed film" aria-hidden="true">
+            {/* old film spool spinning at the top of the strip */}
+            <svg className="spool" viewBox="0 0 200 200">
+              <circle cx="100" cy="100" r="96" className="sp-rim" />
+              <circle cx="100" cy="100" r="78" className="sp-film" />
+              {[0, 72, 144, 216, 288].map((a) => (
+                <circle key={a} cx={100 + 46 * Math.cos((a * Math.PI) / 180)} cy={100 + 46 * Math.sin((a * Math.PI) / 180)} r="19" className="sp-hole" />
+              ))}
+              <circle cx="100" cy="100" r="15" className="sp-hub" />
+              <circle cx="100" cy="100" r="5" className="sp-pin" />
+            </svg>
+            {/* celluloid strip: frames + sprocket holes roll down in a seamless loop */}
+            <div className="strip">
+              <div className="track">
+                {[0, 1].map((copy) =>
+                  [
+                    ["/assets/img/r5.webp", 480, 853],
+                    ["/assets/img/hl/jbl.webp", 338, 600],
+                    ["/assets/img/r6.webp", 480, 853],
+                    ["/assets/img/hl/mastercard.webp", 338, 600],
+                    ["/assets/img/r4.webp", 480, 853],
+                    ["/assets/img/hl/secret.webp", 338, 600],
+                  ].map(([src, w, h], i) => (
+                    <div className="fr" key={`${copy}-${i}`}>
+                      <img src={src as string} width={w as number} height={h as number} alt="" decoding="async" fetchPriority={copy === 0 && i === 0 ? "high" : undefined} />
+                      <span className="edge">{`CA·26 ▸ ${String(i + 1).padStart(2, "0")}A`}</span>
+                    </div>
+                  ))
+                )}
+              </div>
+              <span className="grain"></span>
+            </div>
             <span className="chip c3">wait, this is an ad?!</span>
             <span className="chip c2">😂😂😂</span>
             <span className="chip c1">sending this to the gc</span>
