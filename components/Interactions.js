@@ -195,13 +195,33 @@ export default function Interactions() {
       svcItems.forEach((li,i)=>li.querySelector('.svc-head').addEventListener('click',()=>{
         const span=svc.offsetHeight-innerHeight;scrollTo({top:svc.getBoundingClientRect().top+scrollY+span*(i+.5)/svcItems.length,behavior:reduce?'auto':'smooth'})}));
 
-      /* ---------- split-flap board: each tile folds down once, left to right ---------- */
-      // tiles always hold the real digits; the fold is a single calm reveal (no rapid shuffling)
-      const flapCells=$$('.cells');
-      flapCells.forEach(c=>{c.innerHTML=[...c.dataset.v].map((d,k)=>`<span class="cell" style="--d:${k*90}ms">${d}</span>`).join('')});
-      const flapBoard=$('.flap'); if(!reduce) flapBoard.classList.add('armed');
-      const flapIO=new IntersectionObserver(([en])=>{if(!en.isIntersecting)return;flapIO.disconnect();flapBoard.classList.add('flapped')},{threshold:.3});
-      flapIO.observe(flapBoard);
+      /* ---------- split-flap board: tiles flap 0→9→target every time it comes into view ---------- */
+      const SD=45; // ms per half-flap
+      const leaves=d=>`<span class="h t"><b>${d}</b></span><span class="h b"><b>${d}</b></span><span class="h t fa"><b>${d}</b></span><span class="h b fb"><b>${d}</b></span>`;
+      $$('.cells').forEach(c=>{c.innerHTML=[...c.dataset.v].map(d=>`<span class="cell" data-d="${d}" data-cur="${d}" style="--sd:${SD}ms">${leaves(d)}</span>`).join('')});
+      const allCells=$$('.cell');
+      const setAll=(el,d)=>{el.querySelectorAll('b').forEach(b=>b.textContent=d);el.dataset.cur=d};
+      function flip(el,next){ // one mechanical flip: old top half falls, new bottom half lands
+        const cur=el.dataset.cur, [t,b,fa,fb]=el.querySelectorAll('b');
+        t.textContent=next; b.textContent=cur; fa.textContent=cur; fb.textContent=next;
+        el.classList.remove('go'); void el.offsetWidth; el.classList.add('go');
+        setTimeout(()=>{b.textContent=next;el.dataset.cur=next},SD*2);
+      }
+      let flapTimers=[], played=false;
+      function playBoard(){
+        flapTimers.forEach(clearTimeout); flapTimers=[];
+        allCells.forEach((el,k)=>{
+          setAll(el,'0');
+          const target=+el.dataset.d, steps=10+target; // one full lap of digits, then land
+          for(let i=1;i<=steps;i++) flapTimers.push(setTimeout(()=>flip(el,String(i%10)),k*110+i*(SD*2+12)));
+        });
+      }
+      if(!reduce){
+        new IntersectionObserver(([en])=>{
+          if(en.intersectionRatio>=.45&&!played){played=true;playBoard()}
+          else if(!en.isIntersecting){played=false} // flips again next time you come back
+        },{threshold:[0,.45]}).observe($('.flap'));
+      }
 
       /* ---------- reveal on scroll ---------- */
       const io=new IntersectionObserver(es=>es.forEach(en=>{if(en.isIntersecting){en.target.classList.add('in');io.unobserve(en.target)}}),{threshold:.12,rootMargin:'0px 0px -6% 0px'});

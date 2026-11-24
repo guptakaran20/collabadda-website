@@ -65,8 +65,8 @@ export default function Home() {
             </div>
            </div>
            <div className="feed film" aria-hidden="true">
-            {/* old film spool spinning at the top of the strip */}
-            <svg className="spool" viewBox="0 0 200 200">
+            {/* old film spool: travels around the strip's edge while it spins */}
+            <div className="orbit"><svg className="spool" viewBox="0 0 200 200">
               <circle cx="100" cy="100" r="96" className="sp-rim" />
               <circle cx="100" cy="100" r="78" className="sp-film" />
               {[0, 72, 144, 216, 288].map((a) => (
@@ -74,7 +74,7 @@ export default function Home() {
               ))}
               <circle cx="100" cy="100" r="15" className="sp-hub" />
               <circle cx="100" cy="100" r="5" className="sp-pin" />
-            </svg>
+            </svg></div>
             {/* celluloid strip: frames + sprocket holes roll down in a seamless loop */}
             <div className="strip">
               <div className="track">

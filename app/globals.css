@@ -82,16 +82,22 @@ html{scroll-behavior:smooth}
 .flap-row{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:14px 0;border-top:1px solid rgba(241,237,249,.1)}
 .flap-row>span{font-family:var(--mono);font-size:clamp(11px,1vw,13px);letter-spacing:.14em;text-transform:uppercase;color:#cbc3e0}
 .cells{display:flex;gap:6px}
-.cell{position:relative;width:clamp(34px,3.6vw,52px);height:clamp(46px,4.8vw,68px);border-radius:7px;background:#2a2340;display:grid;place-items:center;
-  font-family:var(--mono);font-weight:700;font-size:clamp(24px,2.8vw,40px);color:#efe9ff;box-shadow:inset 0 -2px 0 rgba(0,0,0,.4);overflow:hidden}
-.cell::after{content:"";position:absolute;left:0;right:0;top:50%;height:2px;background:#130f20}
-/* one smooth fold-down per tile when the board scrolls into view */
-.cell{transform-origin:50% 50%;perspective:300px}
-.flap.armed:not(.flapped) .cell{transform:rotateX(-90deg);opacity:0}
-.flap.flapped .cell{animation:fold .6s cubic-bezier(.3,1.4,.5,1) var(--d,0ms) both}
-@keyframes fold{0%{transform:rotateX(-90deg);opacity:0}60%{opacity:1}100%{transform:rotateX(0);opacity:1}}
-@media (prefers-reduced-motion:reduce){.flap .cell{transform:none!important;opacity:1!important;animation:none!important}}
-.cell.blank{color:transparent}
+/* split-flap tile: static top/bottom halves + two moving leaves */
+.cell{position:relative;width:clamp(34px,3.6vw,52px);height:clamp(46px,4.8vw,68px);border-radius:7px;perspective:220px;
+  font-family:var(--mono);font-weight:700;font-size:clamp(24px,2.8vw,40px);color:#efe9ff;box-shadow:0 2px 0 rgba(0,0,0,.35)}
+.cell .h{position:absolute;left:0;right:0;height:50%;overflow:hidden;background:#2a2340;backface-visibility:hidden}
+.cell .t{top:0;border-radius:7px 7px 0 0}
+.cell .b{bottom:0;border-radius:0 0 7px 7px;background:#251e39}
+.cell .h b{position:absolute;left:0;right:0;height:200%;display:grid;place-items:center;font-weight:700}
+.cell .t b{top:0}.cell .b b{bottom:0}
+.cell .fa{z-index:2;transform-origin:50% 100%}
+.cell .fb{z-index:2;transform-origin:50% 0;transform:rotateX(90deg)}
+.cell:not(.go) .fa,.cell:not(.go) .fb{visibility:hidden}
+.cell.go .fa{animation:leafA var(--sd,45ms) ease-in forwards}
+.cell.go .fb{animation:leafB var(--sd,45ms) ease-out var(--sd,45ms) forwards}
+@keyframes leafA{from{transform:rotateX(0)}to{transform:rotateX(-90deg)}}
+@keyframes leafB{from{transform:rotateX(90deg)}to{transform:rotateX(0)}}
+.cell::after{content:"";position:absolute;z-index:3;left:0;right:0;top:calc(50% - 1px);height:2px;background:#130f20}
 
 /* BTS film that grows with scroll */
 .work{padding-top:0!important}
@@ -442,15 +448,26 @@ footer{background:var(--ink);color:#a59cbd;padding:24px 0 calc(24px + env(safe-a
 @keyframes grain{25%{transform:translate(-6%,4%)}50%{transform:translate(5%,-3%)}75%{transform:translate(-3%,-6%)}}
 @keyframes flicker{0%,100%{opacity:.6;transform:translateX(0)}30%{opacity:1;transform:translateX(-38px)}55%{opacity:.3;transform:translateX(22px)}80%{opacity:.8;transform:translateX(-10px)}}
 /* the spool */
-.film .spool{position:absolute;z-index:2;top:-4%;left:50%;width:46%;transform:translateX(-50%);filter:drop-shadow(4px 6px 0 rgba(18,13,31,.18));animation:spin 5s linear infinite}
-.film:hover .spool{animation-play-state:paused}
+/* the spool's centre rides the strip's border (strip = inset 11% 6% 0), at even speed:
+   keyframe stops are proportional to each edge's length */
+.film .orbit{position:absolute;z-index:2;width:36%;aspect-ratio:1;left:6%;top:11%;transform:translate(-50%,-50%);
+  animation:orbit 16s linear infinite;will-change:left,top}
+.film .spool{display:block;width:100%;height:100%;filter:drop-shadow(4px 6px 0 rgba(18,13,31,.18));animation:spin 4s linear infinite}
+.film:hover .orbit,.film:hover .spool{animation-play-state:paused}
+@keyframes orbit{
+  0%{left:6%;top:11%}
+  16%{left:94%;top:11%}
+  50%{left:94%;top:100%}
+  66%{left:6%;top:100%}
+  100%{left:6%;top:11%}
+}
 .sp-rim{fill:var(--ink)}
 .sp-film{fill:#3a2f52}
 .sp-hole{fill:var(--paper)}
 .sp-hub{fill:var(--or)}
 .sp-pin{fill:var(--paper)}
 @media (max-width:860px){.film{height:440px;width:min(240px,64vw)}}
-@media (prefers-reduced-motion:reduce){.film .track,.film .spool,.film .grain,.film .strip::after{animation:none}}
+@media (prefers-reduced-motion:reduce){.film .track,.film .spool,.film .orbit,.film .grain,.film .strip::after{animation:none}}
 
 /* ---------- intro: BTS footage behind the neon sign ---------- */
 #intro .intro-bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;pointer-events:none;
